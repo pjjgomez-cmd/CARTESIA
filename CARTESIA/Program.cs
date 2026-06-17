@@ -1,5 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 string rutaArchivo = "ubicaciones.txt";
 
@@ -8,9 +13,9 @@ Ubicacion[] ubicaciones = new Ubicacion[MAX_UBICACIONES];
 int totalUbicaciones = 0;
 
 cargarUbicaciones();
-administrarUbicaciones();
+await administrarUbicaciones();
 
-void administrarUbicaciones()
+async Task administrarUbicaciones()
 {
     int opcion;
 
@@ -25,7 +30,7 @@ void administrarUbicaciones()
                 break;
 
             case 2: // Agregar Ubicación
-                agregarUbicacionMenu();
+                await agregarUbicacionMenu();
                 break;
 
             case 3: // Volver
@@ -121,14 +126,14 @@ void cargarUbicaciones()
     lector.Close();
 }
 
-void agregarUbicacionMenu()
+async Task agregarUbicacionMenu()
 {
     int opcion = mostrarSubmenuAgregar();
 
     switch (opcion)
     {
         case 1: // Buscar ubicación
-            Console.WriteLine("Pendiente: búsqueda por API.");
+            await buscarUbicacionPorApi();
             break;
 
         case 2: // Agregar manualmente
@@ -248,6 +253,125 @@ string ingresarNombreUbicacion()
     } while (!valido);
 
     return (lat, lon);
+}
+
+async Task buscarUbicacionPorApi()
+{
+    if (totalUbicaciones >= MAX_UBICACIONES)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("No se pueden agregar más ubicaciones, el arreglo está lleno.");
+        Console.ResetColor();
+        return;
+    }
+
+    bool valido = false;
+    string lugar = "";
+    do
+    {
+        Console.Write("Ingresa el nombre del lugar a buscar: ");
+        lugar = Console.ReadLine();
+        if (!string.IsNullOrEmpty(lugar))
+        {
+            valido = true;
+        }
+    } while (!valido);
+
+    var parametros = new Dictionary<string, string>
+    {
+        ["type"] = "search",
+        ["hl"] = "es",
+        ["engine"] = "google_maps",
+        ["api_key"] = "0f623482556b342af3e7117b162e8b72e6dbfbb1c2b50881a6e542bf3897f3d5",
+        ["gl"] = "ni",
+        ["q"] = lugar,
+        ["ll"] = "@12.045,-86.19,11z"
+    };
+
+    using HttpClient client = new();
+
+    string url = "https://serpapi.com/search.json?" +
+                 string.Join("&", parametros.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+
+    string respuesta;
+    try
+    {
+        respuesta = await client.GetStringAsync(url);
+    }
+    catch (HttpRequestException)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("No se pudo conectar con el servicio de búsqueda. Intente más tarde.");
+        Console.ResetColor();
+        return;
+    }
+
+    using JsonDocument doc = JsonDocument.Parse(respuesta);
+    var raiz = doc.RootElement;
+
+    if (!raiz.TryGetProperty("local_results", out var resultados))
+    {
+        Console.WriteLine("No se encontraron resultados para esta búsqueda en la zona.");
+        return;
+    }
+
+    var lugaresEncontrados = new List<(string nombre, double lat, double lng)>();
+
+    foreach (var negocio in resultados.EnumerateArray().Take(5))
+    {
+        string nombre = negocio.GetProperty("title").GetString();
+
+        if (negocio.TryGetProperty("gps_coordinates", out var gps))
+        {
+            double lat = gps.GetProperty("latitude").GetDouble();
+            double lng = gps.GetProperty("longitude").GetDouble();
+            lugaresEncontrados.Add((nombre, lat, lng));
+        }
+    }
+
+    lugaresEncontrados.RemoveAll(l => !validarCoordenadas(l.lat, l.lng));
+
+    if (lugaresEncontrados.Count == 0)
+    {
+        Console.WriteLine("No se encontraron resultados dentro del área permitida (Managua y Masaya).");
+        return;
+    }
+
+    Console.WriteLine("\n--- Resultados obtenidos ---");
+    for (int i = 0; i < lugaresEncontrados.Count; i++)
+    {
+        Console.WriteLine($"{i + 1}. {lugaresEncontrados[i].nombre}");
+    }
+
+    int seleccion;
+    bool seleccionValida = false;
+    do
+    {
+        Console.Write("Seleccione el lugar: ");
+        if (int.TryParse(Console.ReadLine(), out seleccion) && seleccion >= 1 && seleccion <= lugaresEncontrados.Count)
+        {
+            seleccionValida = true;
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Opción inválida. Intente nuevamente.");
+            Console.ResetColor();
+        }
+    } while (!seleccionValida);
+
+    var elegido = lugaresEncontrados[seleccion - 1];
+
+    ubicaciones[totalUbicaciones].nombre = elegido.nombre;
+    ubicaciones[totalUbicaciones].latitud = elegido.lat;
+    ubicaciones[totalUbicaciones].longitud = elegido.lng;
+    totalUbicaciones++;
+
+    guardarUbicacionEnArchivo(elegido.nombre, elegido.lat, elegido.lng);
+
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("Ubicación agregada correctamente desde la búsqueda.");
+    Console.ResetColor();
 }
 struct Ubicacion
 {
