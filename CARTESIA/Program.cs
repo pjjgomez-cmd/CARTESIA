@@ -25,7 +25,7 @@ void administrarUbicaciones()
                 break;
 
             case 2: // Agregar Ubicación
-                Console.WriteLine("Pendiente: agregar ubicación.");
+                agregarUbicacionMenu();
                 break;
 
             case 3: // Volver
@@ -121,6 +121,134 @@ void cargarUbicaciones()
     lector.Close();
 }
 
+void agregarUbicacionMenu()
+{
+    int opcion = mostrarSubmenuAgregar();
+
+    switch (opcion)
+    {
+        case 1: // Buscar ubicación
+            Console.WriteLine("Pendiente: búsqueda por API.");
+            break;
+
+        case 2: // Agregar manualmente
+            agregarUbicacionManual();
+            break;
+    }
+}
+
+int mostrarSubmenuAgregar()
+{
+    int opcion;
+    bool valido = false;
+
+    do
+    {
+        Console.WriteLine("\n--- Agregar Ubicación ---");
+        Console.WriteLine("1. Buscar ubicación");
+        Console.WriteLine("2. Agregar manualmente");
+        Console.Write("Seleccione una opción: ");
+
+        if (int.TryParse(Console.ReadLine(), out opcion) && opcion >= 1 && opcion <= 2)
+        {
+            valido = true;
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Opción inválida. Intente nuevamente.");
+            Console.ResetColor();
+        }
+    } while (!valido);
+
+    return opcion;
+}
+
+void agregarUbicacionManual()
+{
+    if (totalUbicaciones >= MAX_UBICACIONES)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("No se pueden agregar más ubicaciones, el arreglo está lleno.");
+        Console.ResetColor();
+        return;
+    }
+
+    string nombre = ingresarNombreUbicacion();
+    var (lat, lon) = ingresarLongitudLatitud();
+
+    ubicaciones[totalUbicaciones].nombre = nombre;
+    ubicaciones[totalUbicaciones].latitud = lat;
+    ubicaciones[totalUbicaciones].longitud = lon;
+    totalUbicaciones++;
+
+    guardarUbicacionEnArchivo(nombre, lat, lon);
+
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("Ubicación agregada correctamente.");
+    Console.ResetColor();
+}
+
+string ingresarNombreUbicacion()
+{
+    string nombre;
+    bool valido = false;
+
+    do
+    {
+        Console.Write("Ingrese el nombre de la ubicación: ");
+        nombre = Console.ReadLine();
+
+        if (!string.IsNullOrWhiteSpace(nombre))
+        {
+            valido = true;
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("El nombre no puede estar vacío. Intente nuevamente.");
+            Console.ResetColor();
+        }
+    } while (!valido);
+
+    return nombre;
+}
+
+(double lat, double lon) ingresarLongitudLatitud()
+{
+    double lat, lon;
+    bool valido = false;
+
+    do
+    {
+        Console.Write("Ingrese la latitud: ");
+        bool latValida = double.TryParse(Console.ReadLine(), out lat);
+
+        Console.Write("Ingrese la longitud: ");
+        bool lonValida = double.TryParse(Console.ReadLine(), out lon);
+
+        if (!latValida || !lonValida)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Debe ingresar valores numéricos válidos.");
+            Console.ResetColor();
+            continue;
+        }
+
+        if (!validarCoordenadas(lat, lon))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Las coordenadas están fuera del área permitida (Managua y Masaya, Nicaragua). Intente nuevamente.");
+            Console.ResetColor();
+            continue;
+        }
+
+        valido = true;
+
+    } while (!valido);
+
+    return (lat, lon);
+}
 struct Ubicacion
 {
     public string nombre;
