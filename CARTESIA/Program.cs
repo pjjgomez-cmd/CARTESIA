@@ -17,7 +17,7 @@ void administrarUbicaciones()
         switch (opcion)
         {
             case 1: // Ver Ubicaciones
-                mostrarArregloUbicaciones();
+                 mostrarArregloUbicaciones();
                 break;
 
             case 2: // Agregar Ubicación
