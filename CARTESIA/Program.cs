@@ -17,7 +17,7 @@ void administrarUbicaciones()
         switch (opcion)
         {
             case 1: // Ver Ubicaciones
-                Console.WriteLine("Pendiente: mostrar ubicaciones.");
+                mostrarArregloUbicaciones();
                 break;
 
             case 2: // Agregar Ubicación
@@ -58,6 +58,21 @@ int mostrarSubmenu()
     } while (!valido);
 
     return opcion;
+}
+void mostrarArregloUbicaciones()
+{
+    Console.WriteLine("\n--- Ubicaciones Registradas ---");
+
+    if (totalUbicaciones == 0)
+    {
+        Console.WriteLine("No hay ubicaciones registradas.");
+        return;
+    }
+
+    for (int i = 0; i < totalUbicaciones; i++)
+    {
+        Console.WriteLine($"{i + 1}. Nombre: {ubicaciones[i].nombre} | Latitud: {ubicaciones[i].latitud} | Longitud: {ubicaciones[i].longitud}");
+    }
 }
 struct Ubicacion
 {
