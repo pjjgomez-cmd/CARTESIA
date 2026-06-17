@@ -74,6 +74,91 @@ void mostrarArregloUbicaciones()
         Console.WriteLine($"{i + 1}. Nombre: {ubicaciones[i].nombre} | Latitud: {ubicaciones[i].latitud} | Longitud: {ubicaciones[i].longitud}");
     }
 }
+
+// ===========================================================
+// Módulo "Mostrar historial"
+//
+// Nota: esta función implementa ÚNICAMENTE la lógica del diagrama
+// de flujo que es la parte que me toca hacer osea; (abrir archivo
+// -> verificar si hay registros -> mostrar registros o mensaje -> fin).
+// La interfaz/menú que invoque esta
+// función la integra el compañero encargado de esa parte del
+// proyecto; aquí solo se garantiza que el flujo funcione.
+// al momento de escribir esto, no se ha
+// definido el menú o interfaz que invoque esta función,
+// por lo que no se incluye ningún código relacionado a eso,
+// solo la función mostrarHistorial()
+// y sus funciones auxiliares.
+// ===========================================================
+
+string rutaHistorial = "historial.txt";
+
+// Inicio -> Abrir historial.txt -> Hay registros?
+//   Si -> Mostrar registros -> FIN
+//   No -> Mostrar mensaje -> FIN
+void mostrarHistorial()
+{
+    // Abrir historial.txt
+    if (!File.Exists(rutaHistorial))
+    {
+        // No hay registros (el archivo ni siquiera existe todavía)
+        mostrarMensajeSinHistorial();
+        return; // FIN
+    }
+
+    List<string> registros = leerRegistrosHistorial();
+
+    // Hay registros?
+    if (registros.Count > 0)
+    {
+        // Sí -> Mostrar registros
+        mostrarRegistrosHistorial(registros);
+    }
+    else
+    {
+        // No -> Mostrar mensaje
+        mostrarMensajeSinHistorial();
+    }
+    // FIN
+}
+
+// Lee historial.txt con StreamReader y devuelve cada línea no vacía
+// como un registro.
+List<string> leerRegistrosHistorial()
+{
+    var registros = new List<string>();
+
+    StreamReader lector = new StreamReader(rutaHistorial);
+    string? linea;
+
+    while ((linea = lector.ReadLine()) != null)
+    {
+        if (!string.IsNullOrWhiteSpace(linea))
+        {
+            registros.Add(linea);
+        }
+    }
+
+    lector.Close();
+
+    return registros;
+}
+
+// Rama "Sí": Mostrar registros
+void mostrarRegistrosHistorial(List<string> registros)
+{
+    Console.WriteLine("\n--- Historial ---");
+    for (int i = 0; i < registros.Count; i++)
+    {
+        Console.WriteLine($"{i + 1}. {registros[i]}");
+    }
+}
+
+// Rama "No": Mostrar mensaje
+void mostrarMensajeSinHistorial()
+{
+    Console.WriteLine("No hay registros en el historial.");
+}
 struct Ubicacion
 {
     public string nombre;
