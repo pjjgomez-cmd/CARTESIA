@@ -1,0 +1,75 @@
+﻿using System;
+
+class Program
+{
+    static void Main()
+    {
+        int opcion;
+
+        do
+        {
+            Console.Clear();
+
+            Console.WriteLine("1. Administrar ubicaciones");
+            Console.WriteLine("2. Calcular Viaje Privado");
+            Console.WriteLine("3. Transporte Público");
+            Console.WriteLine("4. Simulador Presupuesto");
+            Console.WriteLine("5. Historial");
+            Console.WriteLine("6. Estadísticas");
+            Console.WriteLine("7. Salir");
+
+            Console.Write("\nIngrese su opción: ");
+
+            if (!int.TryParse(Console.ReadLine(), out opcion))
+            {
+                Console.WriteLine("Opción inválida.");
+                Console.ReadKey();
+                continue;
+            }
+
+            Console.WriteLine();
+
+            switch (opcion)
+            {
+                case 1:
+                    Console.WriteLine("Administrar ubicaciones");
+                    break;
+
+                case 2:
+                    Console.WriteLine("Calcular Viaje Privado");
+                    break;
+
+                case 3:
+                    Console.WriteLine("Transporte Público");
+                    break;
+
+                case 4:
+                    Console.WriteLine("Simulador Presupuesto");
+                    break;
+
+                case 5:
+                    Console.WriteLine("Historial");
+                    break;
+
+                case 6:
+                    Console.WriteLine("Estadísticas");
+                    break;
+
+                case 7:
+                    Console.WriteLine("Saliendo del programa...");
+                    break;
+
+                default:
+                    Console.WriteLine("Opción no válida.");
+                    break;
+            }
+
+            if (opcion != 7)
+            {
+                Console.WriteLine("\nPresione una tecla para continuar...");
+                Console.ReadKey();
+            }
+
+        } while (opcion != 7);
+    }
+}
