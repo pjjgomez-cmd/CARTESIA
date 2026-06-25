@@ -458,6 +458,79 @@ void mostrarMensajeSinHistorial()
 {
     Console.WriteLine("No hay registros en el historial.");
 }
+
+//feature/frank-estadisticas-viajes
+
+void MostrarEstadisticas()
+{
+    if (!File.Exists(rutaHistorial) || File.ReadAllLines(rutaHistorial).Length == 0)
+    {
+        Console.WriteLine("\nNo hay registros en el historial.");
+        return;
+    }
+
+    string[] registros = File.ReadAllLines(rutaHistorial);
+
+    int totalViajes = registros.Length;
+    double costoTotal = 0;
+    double viajeMasCaro = double.MinValue;
+    double viajeMasBarato = double.MaxValue;
+
+    string destinoMasFrecuente = "";
+    int mayorFrecuencia = 0;
+
+    var destinos = new Dictionary<string, int>();
+
+    foreach (string registro in registros)
+    {
+        string[] datos = registro.Split(';');
+
+        if (datos.Length < 2)
+        {
+            continue;
+        }
+
+        string destino = datos[0];
+
+        if (!double.TryParse(datos[1], out double costo))
+        {
+            continue;
+        }
+
+        costoTotal += costo;
+
+        if (costo > viajeMasCaro)
+            viajeMasCaro = costo;
+
+        if (costo < viajeMasBarato)
+            viajeMasBarato = costo;
+
+        if (destinos.ContainsKey(destino))
+            destinos[destino]++;
+        else
+            destinos[destino] = 1;
+    }
+
+    foreach (var destino in destinos)
+    {
+        if (destino.Value > mayorFrecuencia)
+        {
+            mayorFrecuencia = destino.Value;
+            destinoMasFrecuente = destino.Key;
+        }
+    }
+
+    double costoPromedio = costoTotal / totalViajes;
+
+    Console.WriteLine("\n=== ESTADÍSTICAS ===");
+    Console.WriteLine($"Total de viajes: {totalViajes}");
+    Console.WriteLine($"Costo promedio: {costoPromedio:C}");
+    Console.WriteLine($"Viaje más caro: {viajeMasCaro:C}");
+    Console.WriteLine($"Viaje más barato: {viajeMasBarato:C}");
+    Console.WriteLine($"Destino más frecuente: {destinoMasFrecuente}");
+}
+
+
 struct Ubicacion
 {
     public string nombre;
